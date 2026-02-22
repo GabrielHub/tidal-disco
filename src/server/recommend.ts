@@ -16,7 +16,7 @@ function deduplicateTracks(tracks: Track[]): Track[] {
 }
 
 /**
- * Match Claude's track radio query strings to actual track IDs in the playlist.
+ * Match the AI model's track radio query strings to actual track IDs in the playlist.
  * Falls back to evenly-spaced picks if fewer than 3 matches are found.
  */
 function resolveTrackSeeds(queries: string[], tracks: Track[]): string[] {

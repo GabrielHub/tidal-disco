@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
-import Anthropic from '@anthropic-ai/sdk'
+import { generateText } from 'ai'
 import type {
   TasteProfile,
   Track,
@@ -7,21 +7,18 @@ import type {
   TasteAnalysis,
 } from '~/lib/types'
 
-function getClient(): Anthropic {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-}
+const MODEL = 'google/gemini-3.1-pro-preview'
 
-/** Extract JSON from a Claude response, stripping optional markdown fences. */
-function parseClaudeJson<T>(response: Anthropic.Message): T {
-  const block = response.content[0]
-  const text = block.type === 'text' ? block.text : ''
-  const json = text.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
-  return JSON.parse(json) as T
+/** Extract JSON from a response, stripping optional markdown fences. */
+function parseJson<T>(text: string): T {
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  const raw = fenceMatch ? fenceMatch[1].trim() : text.trim()
+  return JSON.parse(raw) as T
 }
 
 /**
  * Phase 1: Analyze taste and generate a discovery strategy.
- * Claude looks at the playlist and decides what kinds of music to search for,
+ * The LLM looks at the playlist and decides what kinds of music to search for,
  * which similar artists to prioritize, and what gaps/directions to explore.
  */
 export const generateDiscoveryStrategy = createServerFn({ method: 'POST' })
@@ -39,8 +36,6 @@ export const generateDiscoveryStrategy = createServerFn({ method: 'POST' })
         reason: string
       }>
     }> => {
-      const client = getClient()
-
       const sampleList = data.sampleTracks
         .slice(0, 50)
         .map((t) => `"${t.title}" by ${t.artist} (${t.album})`)
@@ -79,19 +74,19 @@ Respond with valid JSON only, no markdown fences:
   ]
 }`
 
-      const response = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }],
+      const { text } = await generateText({
+        model: MODEL,
+        maxOutputTokens: 4000,
+        prompt,
       })
 
-      return parseClaudeJson(response)
+      return parseJson(text)
     },
   )
 
 /**
  * Phase 2: Curate the Tidal results.
- * Claude receives the raw candidates from Tidal and picks the best ones.
+ * The LLM receives the raw candidates from Tidal and picks the best ones.
  */
 export const curateRecommendations = createServerFn({ method: 'POST' })
   .inputValidator(
@@ -108,8 +103,6 @@ export const curateRecommendations = createServerFn({ method: 'POST' })
     }): Promise<{
       recommendations: Recommendation[]
     }> => {
-      const client = getClient()
-
       const existingSet = new Set(
         data.existingTracks.map(
           (t) => `${t.artist} - ${t.title}`.toLowerCase(),
@@ -157,13 +150,13 @@ Respond with valid JSON only, no markdown fences:
   ]
 }`
 
-      const response = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: prompt }],
+      const { text } = await generateText({
+        model: MODEL,
+        maxOutputTokens: 8000,
+        prompt,
       })
 
-      const parsed = parseClaudeJson<{
+      const parsed = parseJson<{
         recommendations: Array<{
           title: string
           artist: string
@@ -172,7 +165,7 @@ Respond with valid JSON only, no markdown fences:
           reason: string
           confidence: number
         }>
-      }>(response)
+      }>(text)
 
       const recommendations: Recommendation[] = parsed.recommendations.map(
         (r) => ({ ...r, source: 'tidal-similar', tidalUrl: undefined }),

@@ -18,7 +18,7 @@ export interface Recommendation {
   title: string
   artist: string
   album: string
-  source: 'tidal-similar' | 'tidal-radio' | 'claude'
+  source: 'tidal-similar' | 'tidal-radio'
   reason: string
   discoveryType: 'gap_fill' | 'deep_cut' | 'emerging'
   confidence: number

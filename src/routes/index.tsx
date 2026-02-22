@@ -23,7 +23,7 @@ function HomePage() {
       <p className="mb-10 max-w-lg text-center text-text-muted">
         Paste a Tidal playlist URL and let AI analyze your taste to find tracks
         you&apos;ll love. Powered by Tidal&apos;s recommendation engine and
-        Claude AI curation.
+        AI-powered curation.
       </p>
 
       <PlaylistInput onSubmit={handleSubmit} />
@@ -56,12 +56,12 @@ function HomePage() {
             <code className="rounded bg-bg px-1.5 py-0.5 text-text">.env</code>{' '}
             and add your{' '}
             <a
-              href="https://console.anthropic.com"
+              href="https://vercel.com/docs/ai-gateway"
               className="text-accent underline"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Anthropic API key
+              AI Gateway API key
             </a>
           </li>
           <li>
