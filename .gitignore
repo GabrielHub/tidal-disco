@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.vinxi/
+.output/
+.env
+python/.tidal_session.json
+python/__pycache__/
+*.pyc
+playlist.json
+playlist.csv
+.claude/
