@@ -9,26 +9,30 @@ interface Props {
 type FilterType = 'all' | 'gap_fill' | 'deep_cut' | 'emerging'
 type SortType = 'confidence' | 'type' | 'artist'
 
-const FILTER_OPTIONS: ReadonlyArray<[FilterType, string]> = [
-  ['all', 'All'],
-  ['gap_fill', 'Gap Fill'],
-  ['deep_cut', 'Deep Cut'],
-  ['emerging', 'Emerging'],
+const FILTERS: ReadonlyArray<{ value: FilterType; label: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'gap_fill', label: 'Gap Fill' },
+  { value: 'deep_cut', label: 'Deep Cut' },
+  { value: 'emerging', label: 'Emerging' },
 ]
 
-function computeCounts(
-  recs: Recommendation[],
-): Record<FilterType, number> {
+const FILTER_ACTIVE_STYLES: Record<FilterType, string> = {
+  all: 'border-accent bg-accent/10 text-accent',
+  gap_fill: 'border-gap-fill bg-gap-fill/10 text-gap-fill',
+  deep_cut: 'border-deep-cut bg-deep-cut/10 text-deep-cut',
+  emerging: 'border-emerging bg-emerging/10 text-emerging',
+}
+
+function countByType(recs: Recommendation[]): Record<FilterType, number> {
   const counts = { all: recs.length, gap_fill: 0, deep_cut: 0, emerging: 0 }
-  for (const r of recs) {
-    counts[r.discoveryType]++
-  }
+  for (const r of recs) counts[r.discoveryType]++
   return counts
 }
 
 export function RecGrid({ recommendations }: Props) {
   const [filter, setFilter] = useState<FilterType>('all')
   const [sort, setSort] = useState<SortType>('confidence')
+  const counts = countByType(recommendations)
 
   const filtered =
     filter === 'all'
@@ -46,51 +50,53 @@ export function RecGrid({ recommendations }: Props) {
     }
   })
 
-  const counts = computeCounts(recommendations)
-
   return (
     <div>
+      {/* Controls */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div className="flex gap-2">
-          {FILTER_OPTIONS.map(([value, label]) => (
+          {FILTERS.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setFilter(value)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
                 filter === value
-                  ? 'bg-accent text-bg'
-                  : 'bg-surface text-text-muted hover:bg-surface-hover hover:text-text'
+                  ? FILTER_ACTIVE_STYLES[value]
+                  : 'border-border bg-surface text-text-muted hover:border-border hover:bg-surface-hover hover:text-text'
               }`}
             >
-              {label}{' '}
-              <span className="opacity-60">({counts[value]})</span>
+              {label}
+              <span className="ml-1.5 opacity-50">{counts[value]}</span>
             </button>
           ))}
         </div>
 
-        <div className="ml-auto">
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortType)}
-            className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text outline-none focus:border-accent"
-          >
-            <option value="confidence">Sort by Confidence</option>
-            <option value="type">Sort by Type</option>
-            <option value="artist">Sort by Artist</option>
-          </select>
-        </div>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as SortType)}
+          className="ml-auto rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted outline-none transition focus:border-accent"
+        >
+          <option value="confidence">By confidence</option>
+          <option value="type">By type</option>
+          <option value="artist">By artist</option>
+        </select>
       </div>
 
+      {/* Grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((rec, i) => (
-          <RecCard key={`${rec.artist}-${rec.title}-${i}`} rec={rec} />
+          <RecCard
+            key={`${rec.artist}-${rec.title}-${i}`}
+            rec={rec}
+            index={i}
+          />
         ))}
       </div>
 
       {sorted.length === 0 && (
-        <p className="py-12 text-center text-text-muted">
-          No recommendations match this filter.
-        </p>
+        <div className="py-16 text-center">
+          <p className="text-text-muted">No recommendations match this filter.</p>
+        </div>
       )}
     </div>
   )

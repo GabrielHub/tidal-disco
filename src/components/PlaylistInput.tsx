@@ -15,24 +15,24 @@ export function PlaylistInput({ onSubmit }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xl">
-      <div className="flex gap-3">
+    <form onSubmit={handleSubmit}>
+      <div className="input-glow flex gap-3 rounded-xl border border-border bg-surface p-1.5 transition">
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://tidal.com/browse/playlist/..."
-          className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-text placeholder-text-muted outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+          className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-text placeholder-text-dim outline-none"
         />
         <button
           type="submit"
           disabled={!url.trim()}
-          className="rounded-lg bg-accent px-6 py-3 font-semibold text-bg transition hover:brightness-110 disabled:opacity-40 disabled:hover:brightness-100"
+          className="shrink-0 rounded-lg bg-accent px-6 py-3 font-display text-sm font-bold text-bg transition hover:bg-accent-hover disabled:opacity-30 disabled:hover:bg-accent"
         >
-          Discover Music
+          Discover
         </button>
       </div>
-      <p className="mt-2 text-center text-xs text-text-muted">
+      <p className="mt-3 text-center text-xs text-text-dim">
         Paste a Tidal playlist URL or playlist ID
       </p>
     </form>
