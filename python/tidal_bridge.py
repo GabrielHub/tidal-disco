@@ -16,9 +16,17 @@ Output: JSON to stdout. Errors to stderr.
 import sys
 import json
 import os
+from datetime import datetime, timezone
 import tidalapi
 
 SESSION_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".tidal_session.json")
+
+
+def _parse_expiry(raw) -> datetime | None:
+    """Convert a stored float timestamp back to a datetime for tidalapi."""
+    if not raw:
+        return None
+    return datetime.fromtimestamp(float(raw), tz=timezone.utc)
 
 
 def save_session(session: tidalapi.Session):
@@ -51,7 +59,7 @@ def get_session() -> tidalapi.Session:
             token_type=data["token_type"],
             access_token=data["access_token"],
             refresh_token=data.get("refresh_token"),
-            expiry_time=data.get("expiry_time"),
+            expiry_time=_parse_expiry(data.get("expiry_time")),
         )
         if session.check_login():
             return session
@@ -87,7 +95,7 @@ def cmd_check_auth():
             token_type=data["token_type"],
             access_token=data["access_token"],
             refresh_token=data.get("refresh_token"),
-            expiry_time=data.get("expiry_time"),
+            expiry_time=_parse_expiry(data.get("expiry_time")),
         )
         if session.check_login():
             save_session(session)  # Persist any refreshed tokens

@@ -63,6 +63,7 @@ export function TidalAuth({ onAuthenticated }: Props) {
 
     const intervalMs = Math.max(pollInterval, 2) * 1000
     let cancelled = false
+    let consecutiveErrors = 0
 
     async function poll() {
       if (cancelled) return
@@ -71,6 +72,7 @@ export function TidalAuth({ onAuthenticated }: Props) {
           data: { deviceCode: deviceCode! },
         })
         if (cancelled) return
+        consecutiveErrors = 0
 
         if (result.status === 'authenticated') {
           setState({ phase: 'success' })
@@ -81,7 +83,10 @@ export function TidalAuth({ onAuthenticated }: Props) {
           setState({ phase: 'error', message: result.message || 'Login failed' })
         }
       } catch {
-        // Network error, keep polling
+        consecutiveErrors++
+        if (consecutiveErrors >= 5) {
+          setState({ phase: 'error', message: 'Connection lost. Please try again.' })
+        }
       }
     }
 
