@@ -16,11 +16,11 @@ const FILTERS: ReadonlyArray<{ value: FilterType; label: string }> = [
   { value: 'emerging', label: 'Emerging' },
 ]
 
-const FILTER_ACTIVE_STYLES: Record<FilterType, string> = {
-  all: 'border-accent bg-accent/10 text-accent',
-  gap_fill: 'border-gap-fill bg-gap-fill/10 text-gap-fill',
-  deep_cut: 'border-deep-cut bg-deep-cut/10 text-deep-cut',
-  emerging: 'border-emerging bg-emerging/10 text-emerging',
+const FILTER_COLORS: Record<FilterType, string> = {
+  all: 'bg-text text-bg',
+  gap_fill: 'bg-gap-fill text-white',
+  deep_cut: 'bg-deep-cut text-white',
+  emerging: 'bg-emerging text-white',
 }
 
 function countByType(recs: Recommendation[]): Record<FilterType, number> {
@@ -52,38 +52,51 @@ export function RecGrid({ recommendations }: Props) {
 
   return (
     <div>
-      {/* Controls */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {FILTERS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setFilter(value)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
-                filter === value
-                  ? FILTER_ACTIVE_STYLES[value]
-                  : 'border-border bg-surface text-text-muted hover:border-border hover:bg-surface-hover hover:text-text'
-              }`}
-            >
-              {label}
-              <span className="ml-1.5 opacity-50">{counts[value]}</span>
-            </button>
-          ))}
-        </div>
-
+      {/* Controls — editorial style */}
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-text-dim">
+          Curated Tracklist
+        </p>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortType)}
-          className="ml-auto rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted outline-none transition focus:border-accent"
+          className="rounded-none border-b border-border bg-transparent py-1 text-[11px] font-medium text-text-muted outline-none transition focus:border-text"
         >
-          <option value="confidence">By confidence</option>
-          <option value="type">By type</option>
-          <option value="artist">By artist</option>
+          <option value="confidence">Sort: Confidence</option>
+          <option value="type">Sort: Type</option>
+          <option value="artist">Sort: Artist</option>
         </select>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Filter pills */}
+      <div className="flex gap-2 border-b-2 border-text pb-3 pt-2">
+        {FILTERS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => setFilter(value)}
+            className={`px-3 py-1 text-[11px] font-medium uppercase tracking-wider transition ${
+              filter === value
+                ? FILTER_COLORS[value]
+                : 'bg-transparent text-text-muted hover:text-text'
+            }`}
+          >
+            {label}
+            <span className="ml-1.5 text-[10px] opacity-60">{counts[value]}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tracklist header */}
+      <div className="flex items-center gap-4 border-b border-border py-2 text-[10px] font-semibold uppercase tracking-wider text-text-dim sm:gap-6">
+        <span className="w-8 text-right">#</span>
+        <span className="flex-1">Track</span>
+        <span className="hidden w-16 sm:block">Type</span>
+        <span className="hidden w-20 sm:block">Conf.</span>
+        <span className="w-6" />
+      </div>
+
+      {/* Track rows */}
+      <div>
         {sorted.map((rec, i) => (
           <RecCard
             key={`${rec.artist}-${rec.title}-${i}`}
@@ -95,7 +108,9 @@ export function RecGrid({ recommendations }: Props) {
 
       {sorted.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-text-muted">No recommendations match this filter.</p>
+          <p className="font-display text-xl italic text-text-dim">
+            No tracks match this filter.
+          </p>
         </div>
       )}
     </div>

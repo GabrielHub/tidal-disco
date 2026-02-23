@@ -16,64 +16,90 @@ function HomePage() {
   }
 
   return (
-    <div className="relative flex flex-col items-center pt-16 sm:pt-24 pb-16">
-      {/* Atmospheric gradient blobs */}
-      <div className="pointer-events-none absolute -top-32 left-1/4 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-accent/[0.04] blur-[100px]" />
-      <div className="pointer-events-none absolute -top-20 right-1/4 h-[400px] w-[400px] translate-x-1/3 rounded-full bg-gap-fill/[0.03] blur-[100px]" />
+    <div className="relative pb-20">
+      {/* Hero — editorial split layout */}
+      <div className="grid grid-cols-1 gap-12 pt-12 sm:pt-20 lg:grid-cols-12 lg:gap-8">
+        {/* Left column — oversized serif headline */}
+        <div className="animate-slide-left lg:col-span-7">
+          <p className="text-xs font-medium uppercase tracking-[0.3em] text-accent">
+            Vol. I &mdash; Discovery Issue
+          </p>
+          <h1 className="mt-4 font-display text-[clamp(3rem,8vw,6.5rem)] leading-[0.9] tracking-tight text-text">
+            Unheard
+            <br />
+            <span className="italic text-accent">Music</span>
+            <br />
+            Awaits
+          </h1>
+          <p className="mt-8 max-w-md text-lg font-light leading-relaxed text-text-muted">
+            Paste a Tidal playlist. Our AI dissects your taste,
+            searches Tidal&rsquo;s catalog, and curates a personalized
+            tracklist of hidden gems you never knew existed.
+          </p>
+        </div>
 
-      <h1 className="animate-fade-up font-display text-center text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-        Find <span className="gradient-text">music</span> you
-        <br className="hidden sm:block" />
-        {' '}didn&apos;t know you were
-        <br className="hidden sm:block" />
-        {' '}looking for.
-      </h1>
-
-      <p className="animate-fade-up mt-6 max-w-lg text-center text-base leading-relaxed text-text-muted sm:text-lg" style={{ animationDelay: '0.1s' }}>
-        Paste a Tidal playlist and let AI uncover hidden gems,
-        deep cuts, and emerging artists tailored to your taste.
-      </p>
-
-      <div className="animate-fade-up mt-10 w-full max-w-xl" style={{ animationDelay: '0.2s' }}>
-        <PlaylistInput onSubmit={handleSubmit} />
-      </div>
-
-      {/* How it works */}
-      <div className="animate-fade-up mt-20 grid w-full max-w-3xl grid-cols-1 gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 sm:grid-cols-3" style={{ animationDelay: '0.35s' }}>
-        {[
-          { step: '01', title: 'Analyze', desc: 'AI dissects your taste — genres, moods, eras, and listening patterns.' },
-          { step: '02', title: 'Discover', desc: 'Tidal\'s engine surfaces 80-100 candidates guided by AI strategy.' },
-          { step: '03', title: 'Curate', desc: 'AI picks the best 30-50 tracks with reasons and confidence scores.' },
-        ].map((item) => (
-          <div key={item.step} className="bg-surface p-6">
-            <span className="font-display text-xs font-bold text-accent">{item.step}</span>
-            <h3 className="mt-2 font-display text-lg font-bold text-text">{item.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-text-muted">{item.desc}</p>
+        {/* Right column — input + how it works */}
+        <div className="animate-slide-right lg:col-span-5 lg:pt-8">
+          <div className="rounded-none border-l-2 border-text pl-6">
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">
+              Start Here
+            </p>
+            <PlaylistInput onSubmit={handleSubmit} />
           </div>
-        ))}
+
+          {/* How it works — editorial numbered list */}
+          <div className="mt-16 space-y-0">
+            <hr className="editorial-double mb-6" />
+            <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-text-dim">
+              How It Works
+            </p>
+            {[
+              { n: '01', title: 'Analyze', text: 'AI maps your genres, moods, eras, and listening patterns from the playlist.' },
+              { n: '02', title: 'Search', text: 'Tidal surfaces 80-100 candidate tracks guided by an AI-crafted discovery strategy.' },
+              { n: '03', title: 'Curate', text: 'AI selects 30-50 best tracks with confidence scores and reasons for each pick.' },
+            ].map((step) => (
+              <div key={step.n} className="group flex gap-5 border-t border-border py-5">
+                <span className="font-display text-4xl leading-none text-border transition-colors group-hover:text-accent">
+                  {step.n}
+                </span>
+                <div>
+                  <h3 className="font-body text-sm font-semibold uppercase tracking-wider text-text">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1 text-sm font-light leading-relaxed text-text-muted">
+                    {step.text}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Setup hint */}
-      <p className="mt-12 text-center text-xs text-text-dim">
-        Self-hosted &middot; Requires a{' '}
-        <a
-          href="https://vercel.com/docs/ai-gateway"
-          className="text-text-muted underline decoration-text-dim underline-offset-2 transition hover:text-accent hover:decoration-accent"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          AI Gateway key
-        </a>{' '}
-        and{' '}
-        <a
-          href="https://tidal.com"
-          className="text-text-muted underline decoration-text-dim underline-offset-2 transition hover:text-accent hover:decoration-accent"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Tidal account
-        </a>
-      </p>
+      {/* Bottom tagline */}
+      <div className="mt-20 text-center">
+        <hr className="editorial mb-6" />
+        <p className="text-xs font-light text-text-dim">
+          Self-hosted &middot; Requires a{' '}
+          <a
+            href="https://vercel.com/docs/ai-gateway"
+            className="underline underline-offset-2 transition hover:text-accent"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Vercel AI Gateway key
+          </a>{' '}
+          and a{' '}
+          <a
+            href="https://tidal.com"
+            className="underline underline-offset-2 transition hover:text-accent"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Tidal account
+          </a>
+        </p>
+      </div>
     </div>
   )
 }

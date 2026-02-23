@@ -16,25 +16,38 @@ export function PlaylistInput({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="input-glow flex gap-3 rounded-xl border border-border bg-surface p-1.5 transition">
+      <div className="input-editorial border-b-2 border-border pb-1 transition">
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://tidal.com/browse/playlist/..."
-          className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-text placeholder-text-dim outline-none"
+          className="w-full bg-transparent py-3 text-base text-text placeholder-text-dim outline-none"
         />
+      </div>
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-[11px] font-light text-text-dim">
+          Paste a Tidal playlist URL or playlist ID
+        </p>
         <button
           type="submit"
           disabled={!url.trim()}
-          className="shrink-0 rounded-lg bg-accent px-6 py-3 font-display text-sm font-bold text-bg transition hover:bg-accent-hover disabled:opacity-30 disabled:hover:bg-accent"
+          className="group flex items-center gap-2 bg-text px-5 py-2.5 text-sm font-medium text-bg transition hover:bg-accent disabled:opacity-25"
         >
           Discover
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="transition-transform group-hover:translate-x-0.5"
+          >
+            <path d="M1 7h12M8 2l5 5-5 5" />
+          </svg>
         </button>
       </div>
-      <p className="mt-3 text-center text-xs text-text-dim">
-        Paste a Tidal playlist URL or playlist ID
-      </p>
     </form>
   )
 }

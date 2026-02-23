@@ -2,7 +2,6 @@ import {
   HeadContent,
   Outlet,
   Scripts,
-  ScrollRestoration,
   createRootRoute,
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
@@ -14,13 +13,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'Tidal Discovery — AI Music Recommendations' },
+      { title: 'Tidal Discovery' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
       {
         rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:wght@400;500;600&display=swap',
+        href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap',
       },
     ],
   }),
@@ -28,47 +27,40 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-function EqIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      fill="none"
-      className="text-accent"
-    >
-      <rect x="1" y="7" width="2.5" height="9" rx="1.25" fill="currentColor" opacity="0.9" />
-      <rect x="5.5" y="3" width="2.5" height="13" rx="1.25" fill="currentColor" />
-      <rect x="10" y="1" width="2.5" height="15" rx="1.25" fill="currentColor" opacity="0.9" />
-      <rect x="14.5" y="5" width="2.5" height="11" rx="1.25" fill="currentColor" opacity="0.7" />
-    </svg>
-  )
-}
-
 function RootComponent() {
   return (
     <div className="relative min-h-screen bg-bg">
-      <div className="noise-overlay" />
+      <div className="paper-grain" />
 
-      <nav className="relative z-10 border-b border-border/40">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="group flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 transition group-hover:bg-accent/15">
-              <EqIcon />
-            </div>
-            <span className="font-display text-lg font-bold tracking-tight text-text">
-              Tidal Discovery
+      {/* Editorial header */}
+      <header className="relative z-10">
+        <div className="mx-auto max-w-6xl px-6 pt-6 pb-4">
+          <div className="flex items-end justify-between">
+            <a href="/" className="group">
+              <span className="font-display text-3xl italic leading-none text-text transition-colors group-hover:text-accent sm:text-4xl">
+                Tidal Discovery
+              </span>
+            </a>
+            <span className="hidden pb-1 text-xs font-light uppercase tracking-[0.3em] text-text-dim sm:block">
+              AI-Curated Music
             </span>
-          </a>
-          <span className="hidden text-sm font-medium text-text-dim sm:block">
-            AI-powered music recommendations
-          </span>
+          </div>
+          <hr className="editorial-thick mt-3" />
+          <hr className="editorial mt-1" />
         </div>
-      </nav>
+      </header>
 
-      <main className="relative z-10 mx-auto max-w-7xl px-6 py-10">
+      <main className="relative z-10 mx-auto max-w-6xl px-6 py-8">
         <Outlet />
       </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 mx-auto max-w-6xl px-6 pb-8">
+        <hr className="editorial" />
+        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.25em] text-text-dim">
+          Powered by Tidal &middot; Vercel AI Gateway &middot; Gemini
+        </p>
+      </footer>
     </div>
   )
 }
@@ -81,7 +73,6 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration />
         <Scripts />
       </body>
     </html>

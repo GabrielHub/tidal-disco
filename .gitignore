@@ -9,3 +9,7 @@ python/__pycache__/
 playlist.json
 playlist.csv
 .claude/
+.agents/
+.playwright-mcp/
+skills-lock.json
+*.png

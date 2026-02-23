@@ -6,90 +6,111 @@ interface Props {
   index: number
 }
 
-const TYPE_STYLES = {
-  gap_fill: {
-    badge: 'border-gap-fill/30 bg-gap-fill/10 text-gap-fill',
-    label: 'Gap Fill',
-  },
-  deep_cut: {
-    badge: 'border-deep-cut/30 bg-deep-cut/10 text-deep-cut',
-    label: 'Deep Cut',
-  },
-  emerging: {
-    badge: 'border-emerging/30 bg-emerging/10 text-emerging',
-    label: 'Emerging',
-  },
+const TYPE_META = {
+  gap_fill: { label: 'Gap Fill', className: 'badge-gap_fill' },
+  deep_cut: { label: 'Deep Cut', className: 'badge-deep_cut' },
+  emerging: { label: 'Emerging', className: 'badge-emerging' },
 } as const
 
 export function RecCard({ rec, index }: Props) {
   const [expanded, setExpanded] = useState(false)
-  const style = TYPE_STYLES[rec.discoveryType]
-  const isTruncatable = rec.reason.length > 80
-  const displayReason = expanded
-    ? rec.reason
-    : rec.reason.slice(0, 80) + (isTruncatable ? '...' : '')
+  const meta = TYPE_META[rec.discoveryType]
   const pct = Math.round(rec.confidence * 100)
 
   return (
     <div
-      className={`card-glow-${rec.discoveryType} animate-fade-up rounded-xl border border-border/60 bg-surface p-5`}
-      style={{ animationDelay: `${index * 40}ms` }}
+      className="track-row animate-fade-up group border-b border-border-light"
+      style={{ animationDelay: `${index * 30}ms` }}
     >
-      {/* Header */}
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate font-display text-[15px] font-bold leading-tight text-text">
-            {rec.title}
-          </h3>
-          <p className="mt-0.5 truncate text-sm text-text-muted">{rec.artist}</p>
-          <p className="truncate text-xs text-text-dim">{rec.album}</p>
-        </div>
-        <span
-          className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${style.badge}`}
-        >
-          {style.label}
+      {/* Main row */}
+      <div className="flex items-center gap-4 py-3.5 pr-2 sm:gap-6">
+        {/* Number */}
+        <span className="w-8 shrink-0 text-right font-display text-lg text-text-dim">
+          {String(index + 1).padStart(2, '0')}
         </span>
-      </div>
 
-      {/* Confidence */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between text-[11px] text-text-dim">
-          <span>Confidence</span>
-          <span className="font-medium text-text-muted">{pct}%</span>
-        </div>
-        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border/60">
-          <div
-            className="confidence-bar h-full rounded-full"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Reason */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left text-xs leading-relaxed text-text-muted transition hover:text-text"
-      >
-        {displayReason}
-        {isTruncatable && (
-          <span className="ml-1 font-medium text-accent">
-            {expanded ? 'less' : 'more'}
+        {/* Track info */}
+        <div className="min-w-0 flex-1">
+          <span className="truncate text-sm font-medium text-text">
+            {rec.title}
           </span>
-        )}
-      </button>
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-text-muted">
+            <span className="truncate">{rec.artist}</span>
+            <span className="text-text-dim">&middot;</span>
+            <span className="truncate font-light italic text-text-dim">
+              {rec.album}
+            </span>
+          </div>
+        </div>
 
-      {rec.tidalUrl && (
-        <a
-          href={rec.tidalUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent transition hover:text-accent-hover"
+        {/* Type badge */}
+        <span
+          className={`hidden shrink-0 rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider sm:inline-block ${meta.className}`}
         >
-          Open in Tidal
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M3 1h6v6M9 1L1 9" />
+          {meta.label}
+        </span>
+
+        {/* Confidence */}
+        <div className="hidden w-20 shrink-0 sm:block">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-text-dim">conf.</span>
+            <span className="font-medium tabular-nums text-text-muted">{pct}%</span>
+          </div>
+          <div className="mt-1 h-[3px] overflow-hidden rounded-full bg-border-light">
+            <div
+              className="confidence-bar h-full rounded-full"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Expand / Tidal link */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="shrink-0 p-1 text-text-dim transition hover:text-accent"
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+          >
+            <path d="M3 5l4 4 4-4" />
           </svg>
-        </a>
+        </button>
+      </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="animate-fade-in flex gap-4 pb-4 pl-12 sm:pl-14">
+          {/* Mobile badges */}
+          <div className="flex flex-col gap-2 sm:hidden">
+            <span className={`rounded-sm border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${meta.className}`}>
+              {meta.label}
+            </span>
+            <span className="text-[10px] tabular-nums text-text-dim">{pct}% conf.</span>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-light leading-relaxed text-text-muted">
+              {rec.reason}
+            </p>
+            {rec.tidalUrl && (
+              <a
+                href={rec.tidalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block border-b border-accent pb-0.5 text-[11px] font-medium text-accent transition hover:border-text hover:text-text"
+              >
+                Open in Tidal &rarr;
+              </a>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
