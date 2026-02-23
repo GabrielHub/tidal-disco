@@ -1,42 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-import path from 'node:path'
 import type { Track } from '~/lib/types'
-
-const execFileAsync = promisify(execFile)
-
-const PYTHON = process.env.PYTHON_PATH || 'python'
-const BRIDGE = path.resolve('python/tidal_bridge.py')
-
-async function callBridge(args: string[]): Promise<string> {
-  try {
-    const { stdout, stderr } = await execFileAsync(PYTHON, [BRIDGE, ...args], {
-      timeout: 120_000,
-      maxBuffer: 10 * 1024 * 1024,
-    })
-    if (stderr) {
-      console.error('[tidal_bridge]', stderr)
-    }
-    return stdout
-  } catch (err: unknown) {
-    // execFileAsync errors include stdout/stderr from the failed process
-    const execErr = err as { code?: number; stdout?: string; stderr?: string; message?: string }
-
-    // Exit code 2 = auth issue from the Python bridge
-    if (execErr.code === 2) {
-      throw new Error('TIDAL_NOT_AUTHENTICATED')
-    }
-
-    // Also check stdout for auth JSON in case code isn't available
-    const combined = `${execErr.stdout || ''} ${execErr.stderr || ''} ${execErr.message || ''}`
-    if (combined.includes('not_authenticated') || combined.includes('session_expired')) {
-      throw new Error('TIDAL_NOT_AUTHENTICATED')
-    }
-
-    throw new Error(`Tidal API error: ${execErr.message || String(err)}`)
-  }
-}
+import * as tidal from './tidal-client'
 
 function parsePlaylistId(url: string): string {
   const match = url.match(/playlist\/([a-f0-9-]+)/i)
@@ -49,8 +13,7 @@ function parsePlaylistId(url: string): string {
 
 export const checkTidalAuth = createServerFn({ method: 'GET' }).handler(
   async (): Promise<{ authenticated: boolean }> => {
-    const stdout = await callBridge(['check_auth'])
-    return JSON.parse(stdout)
+    return { authenticated: tidal.isAuthenticated() }
   },
 )
 
@@ -63,8 +26,7 @@ export const startTidalLogin = createServerFn({ method: 'POST' }).handler(
     expires_in: number
     interval: number
   }> => {
-    const stdout = await callBridge(['login_start'])
-    return JSON.parse(stdout)
+    return tidal.startDeviceLogin()
   },
 )
 
@@ -74,8 +36,7 @@ export const pollTidalLogin = createServerFn({ method: 'POST' })
     async ({
       data,
     }): Promise<{ status: 'authenticated' | 'pending' | 'expired' | 'error'; message?: string }> => {
-      const stdout = await callBridge(['login_poll', data.deviceCode])
-      return JSON.parse(stdout)
+      return tidal.pollDeviceLogin(data.deviceCode)
     },
   )
 
@@ -85,8 +46,7 @@ export const fetchPlaylist = createServerFn({ method: 'POST' })
   .inputValidator((data: { playlistUrl: string }) => data)
   .handler(async ({ data }): Promise<Track[]> => {
     const playlistId = parsePlaylistId(data.playlistUrl)
-    const stdout = await callBridge(['fetch_playlist', playlistId])
-    return JSON.parse(stdout) as Track[]
+    return tidal.fetchPlaylistTracks(playlistId)
   })
 
 export const fetchTidalRecommendations = createServerFn({ method: 'POST' })
@@ -97,23 +57,40 @@ export const fetchTidalRecommendations = createServerFn({ method: 'POST' })
     async ({
       data,
     }): Promise<{ similarArtistTracks: Track[]; radioTracks: Track[] }> => {
-      const [similarRaw, radioRaw] = await Promise.all([
-        data.seedArtists.length > 0
-          ? callBridge(['similar_artists', ...data.seedArtists])
-          : Promise.resolve('[]'),
-        data.seedTrackIds.length > 0
-          ? callBridge(['track_radio', ...data.seedTrackIds])
-          : Promise.resolve('[]'),
-      ])
+      // Similar artists pipeline
+      const similarArtistTracks: Track[] = []
+      for (const name of data.seedArtists) {
+        try {
+          const artist = await tidal.searchArtist(name)
+          if (!artist) continue
 
-      const similarData = JSON.parse(similarRaw) as Array<{
-        source_artist: string
-        similar_artist: string
-        tracks: Track[]
-      }>
-      const similarArtistTracks = similarData.flatMap((s) => s.tracks)
-      const radioTracks = JSON.parse(radioRaw) as Track[]
+          const similar = await tidal.getSimilarArtists(artist.id)
+          for (const sim of similar) {
+            try {
+              const tracks = await tidal.getArtistTopTracks(sim.id)
+              similarArtistTracks.push(...tracks)
+            } catch (e) {
+              console.error(`Error getting top tracks for ${sim.name}:`, e)
+            }
+          }
+        } catch (e) {
+          console.error(`Error finding similar artists for ${name}:`, e)
+        }
+      }
 
-      return { similarArtistTracks, radioTracks }
+      // Track radio pipeline
+      const radioMap = new Map<string, Track>()
+      for (const tid of data.seedTrackIds) {
+        try {
+          const tracks = await tidal.getTrackRadio(tid)
+          for (const t of tracks) {
+            if (!radioMap.has(t.id)) radioMap.set(t.id, t)
+          }
+        } catch (e) {
+          console.error(`Error getting radio for track ${tid}:`, e)
+        }
+      }
+
+      return { similarArtistTracks, radioTracks: Array.from(radioMap.values()) }
     },
   )

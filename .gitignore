@@ -3,9 +3,7 @@ dist/
 .vinxi/
 .output/
 .env
-python/.tidal_session.json
-python/__pycache__/
-*.pyc
+.tidal-session.json
 playlist.json
 playlist.csv
 .claude/
